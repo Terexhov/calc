@@ -1,58 +1,64 @@
 import java.util.Scanner;
+
 public class Calc {
     public static void main(String[] args) {
-        Converter converter = new Converter();
-        String[] actions = {"+", "-", "/", "*"};
-        String[] regexActions = {"\\+", "-", "/", "\\*"};
         Scanner scn = new Scanner(System.in);
         System.out.print("Введите выражение из 2 римских или 2 арабских чисел: ");
         String exp = scn.nextLine();
-        int actionIndex=-1;
-        for (int i = 0; i < actions.length; i++) {
-            if(exp.contains(actions[i])){
-                actionIndex = i;
-                break;
-            }
+
+        try {
+            String result = calc(exp);
+            System.out.println("Результат: " + result);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Ошибка: " + e.getMessage());
         }
-        if(actionIndex==-1){
-            System.out.println("Некорректное выражение");
-            return;
+    }
+    public static String calc(String input) {
+        Converter converter = new Converter();
+        String[] operands = input.split("[+\\-*/]");
+
+        if (operands.length != 2) {
+            throw new IllegalArgumentException("Допустимо только два числа.");
         }
-        String[] data = exp.split(regexActions[actionIndex]);
-        if(converter.isRim(data[0]) == converter.isRim(data[1])){
-            int a,b;
+        String[] data = input.split("[+\\-*/]");
+        if (converter.isRim(data[0]) == converter.isRim(data[1])) {
+            int a, b;
             boolean isRim = converter.isRim(data[0]);
-            if(isRim){
+            if (isRim) {
                 a = converter.rimToInt(data[0]);
                 b = converter.rimToInt(data[1]);
-
-            }else{
+            } else {
                 a = Integer.parseInt(data[0]);
                 b = Integer.parseInt(data[1]);
             }
             int result;
-            switch (actions[actionIndex]){
+            switch (input.replaceAll("[^+\\-*/]", "")) {
                 case "+":
-                    result = a+b;
+                    result = a + b;
                     break;
                 case "-":
-                    result = a-b;
+                    result = a - b;
                     break;
                 case "*":
-                    result = a*b;
+                    result = a * b;
                     break;
                 default:
-                    result = a/b;
+                    if (b == 0) {
+                        throw new IllegalArgumentException("Делить на 0 нельзя.");
+                    }
+                    result = a / b;
                     break;
             }
-            if(isRim){
-                System.out.println(converter.intToRim(result));
+            if (isRim) {
+                if (result <= 0) {
+                    throw new IllegalArgumentException("В римской системе нет нуля и отрицательных чисел. Попробуйте еще раз!");
+                }
+                return converter.intToRim(result);
+            } else {
+                return String.valueOf(result);
             }
-            else{
-                System.out.println(result);
-            }
-        }else{
-            System.out.println("Числа должны быть в одном формате");
+        } else {
+            throw new IllegalArgumentException("Числа должны быть в одном формате");
         }
     }
 }
